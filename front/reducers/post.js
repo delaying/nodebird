@@ -1,3 +1,5 @@
+import shortId from "shortid";
+
 // db에서 다른정보와 합쳐질땐 맨앞글자가 대문자가됨.
 export const initialState = {
   mainPosts: [
@@ -41,6 +43,9 @@ export const initialState = {
   addPostLoading: false,
   addPostDone: false,
   addPostError: null,
+  addCommentLoading: false,
+  addCommentDone: false,
+  addCommentError: null,
 };
 
 // 이름을 그대로 상수처리 해주어야 알기쉽게 재활용가능
@@ -62,16 +67,16 @@ export const addComment = (data) => ({
   data,
 });
 
-const dummyPost = {
-  id: 2,
-  content: "더미데이터",
+const dummyPost = (data) => ({
+  id: shortId.generate(),
+  content: data,
   User: {
     id: 1,
     nickname: "지연",
   },
   Images: [],
   Comments: [],
-};
+});
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -86,7 +91,7 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         // dummyPost를 앞에두어야 최근게시물이 맨위에 올라옴
-        mainPosts: [dummyPost, ...state.mainPosts],
+        mainPosts: [dummyPost(action.data), ...state.mainPosts],
         addPostLoading: false,
         addPostDone: true,
       };
