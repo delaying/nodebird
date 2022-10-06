@@ -1,30 +1,41 @@
-import { Card, Popover, Button, Avatar, List, Comment } from "antd";
+import React, { useState, useCallback } from "react";
+import { Card, Button, Avatar, List, Comment, Popover } from "antd";
+import PropTypes from "prop-types";
 import {
   RetweetOutlined,
-  HeartOutlined,
   HeartTwoTone,
+  HeartOutlined,
   MessageOutlined,
   EllipsisOutlined,
 } from "@ant-design/icons";
-import { useDispatch, useSelector } from "react-redux";
-import PropTypes from "prop-types";
-import PostImages from "./PostImages";
-import { useCallback, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import styled from "styled-components";
+import Link from "next/link";
+
 import CommentForm from "./CommentForm";
 import PostCardContent from "./PostCardContent";
+import PostImages from "./PostImages";
+import FollowButton from "./FollowButton";
 import { REMOVE_POST_REQUEST } from "../reducers/post";
 
-function PostCard({ post }) {
+const CardWrapper = styled.div`
+  margin-bottom: 20px;
+`;
+
+const PostCard = ({ post }) => {
   const dispatch = useDispatch();
   const { removePostLoading } = useSelector((state) => state.post);
-  const [liked, setLiked] = useState(false);
   const [commentFormOpened, setCommentFormOpened] = useState(false);
-  const onToggleLike = useCallback(() => {
-    // false를 true로, true를 false로 바꿔주는 코드
-    setLiked((prev) => !prev);
-  }, []);
+  const [liked, setLiked] = useState(false);
+  const { me } = useSelector((state) => state.user);
+  const id = me && me.id;
+
   const onToggleComment = useCallback(() => {
     setCommentFormOpened((prev) => !prev);
+  }, []);
+
+  const onToggleLike = useCallback(() => {
+    setLiked((prev) => !prev);
   }, []);
 
   const onRemovePost = useCallback(() => {
@@ -32,16 +43,12 @@ function PostCard({ post }) {
       type: REMOVE_POST_REQUEST,
       data: post.id,
     });
-  });
-
-  // 옵셔널 체이닝 연산자 me가 있으면 아이디를 me의 아이디로 저장
-  const id = useSelector((state) => state.user.me?.id);
+  }, []);
 
   return (
-    <div style={{ marginBottom: 20 }}>
+    <CardWrapper key={post.id}>
       <Card
         cover={post.Images[0] && <PostImages images={post.Images} />}
-        // 배열안에 jsx를 넣을경우 꼭 key를 넣어주어야함!
         actions={[
           <RetweetOutlined key="retweet" />,
           liked ? (
@@ -53,19 +60,18 @@ function PostCard({ post }) {
           ) : (
             <HeartOutlined key="heart" onClick={onToggleLike} />
           ),
-
-          <MessageOutlined key="comment" onClick={onToggleComment} />,
+          <MessageOutlined key="message" onClick={onToggleComment} />,
           <Popover
-            key="more"
+            key="ellipsis"
             content={
               <Button.Group>
-                {id && post.User.id === id ? (
+                {id && post.UserId === id ? (
                   <>
                     <Button>수정</Button>
                     <Button
                       type="danger"
-                      onClick={onRemovePost}
                       loading={removePostLoading}
+                      onClick={onRemovePost}
                     >
                       삭제
                     </Button>
@@ -79,47 +85,55 @@ function PostCard({ post }) {
             <EllipsisOutlined />
           </Popover>,
         ]}
+        extra={<FollowButton post={post} />}
       >
         <Card.Meta
           avatar={<Avatar>{post.User.nickname[0]}</Avatar>}
           title={post.User.nickname}
-          // 해시태그 클릭하면 링크로 바꿔서 해시태그 모여있는곳으로 가게하기 : PostCardContent 컴포넌트
           description={<PostCardContent postData={post.content} />}
-        ></Card.Meta>
+        />
       </Card>
       {commentFormOpened && (
-        <div>
+        <>
           <CommentForm post={post} />
           <List
-            header={`${post.Comments.length}개의 댓글`}
+            header={`${post.Comments ? post.Comments.length : 0} 댓글`}
             itemLayout="horizontal"
-            dataSource={post.Comments}
+            dataSource={post.Comments || []}
             renderItem={(item) => (
               <li>
                 <Comment
-                  author={item.nickname}
-                  avatar={<Avatar>{item.User.nickname[0]}</Avatar>}
+                  author={item.User.nickname}
+                  avatar={
+                    <Link
+                      href={{ pathname: "/user", query: { id: item.User.id } }}
+                      as={`/user/${item.User.id}`}
+                    >
+                      <a>
+                        <Avatar>{item.User.nickname[0]}</Avatar>
+                      </a>
+                    </Link>
+                  }
                   content={item.content}
                 />
               </li>
             )}
           />
-        </div>
+        </>
       )}
-      {/* <CommentForm />
-      <Comments /> */}
-    </div>
+    </CardWrapper>
   );
-}
+};
 
 PostCard.propTypes = {
   post: PropTypes.shape({
     id: PropTypes.number,
     User: PropTypes.object,
+    UserId: PropTypes.number,
     content: PropTypes.string,
     createdAt: PropTypes.object,
-    Comments: PropTypes.arrayOf(PropTypes.object),
-    Images: PropTypes.arrayOf(PropTypes.object),
+    Comments: PropTypes.arrayOf(PropTypes.any),
+    Images: PropTypes.arrayOf(PropTypes.any),
   }).isRequired,
 };
 

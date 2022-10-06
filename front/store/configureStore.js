@@ -3,6 +3,7 @@ import { applyMiddleware, compose, createStore } from "redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 import createSagaMiddleware from "redux-saga";
 
+// 미들웨어는 리덕스 기능을 확장시켜주는 느낌!
 import reducer from "../reducers";
 import rootSaga from "../sagas";
 

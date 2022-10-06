@@ -1,9 +1,10 @@
-import { PlusOutlined } from "@ant-design/icons";
+import React, { useCallback, useState } from "react";
 import PropTypes from "prop-types";
-import { useCallback, useState } from "react";
+import { PlusOutlined } from "@ant-design/icons";
+
 import ImagesZoom from "./ImagesZoom";
 
-function PostImages({ images }) {
+const PostImages = ({ images }) => {
   const [showImagesZoom, setShowImagesZoom] = useState(false);
 
   const onZoom = useCallback(() => {
@@ -17,7 +18,6 @@ function PostImages({ images }) {
   if (images.length === 1) {
     return (
       <>
-        {/* role="presentation" 은 클릭할 순 있지만 클릭할 필요는 없다는 것을 알려줌 */}
         <img
           role="presentation"
           src={images[0].src}
@@ -31,34 +31,34 @@ function PostImages({ images }) {
   if (images.length === 2) {
     return (
       <>
-        {/* role="presentation" 은 클릭할 순 있지만 클릭할 필요는 없다는 것을 알려줌 */}
-        <img
-          role="presentation"
-          style={{ width: "50%", display: "inline-block" }}
-          src={images[0].src}
-          alt={images[0].src}
-          onClick={onZoom}
-        />
-        <img
-          role="presentation"
-          style={{ width: "50%", display: "inline-block" }}
-          src={images[1].src}
-          alt={images[1].src}
-          onClick={onZoom}
-        />
+        <div>
+          <img
+            role="presentation"
+            src={images[0].src}
+            alt={images[0].src}
+            width="50%"
+            onClick={onZoom}
+          />
+          <img
+            role="presentation"
+            src={images[1].src}
+            alt={images[1].src}
+            width="50%"
+            onClick={onZoom}
+          />
+        </div>
         {showImagesZoom && <ImagesZoom images={images} onClose={onClose} />}
       </>
     );
   }
-
   return (
     <>
       <div>
         <img
           role="presentation"
-          style={{ width: "50%" }}
           src={images[0].src}
           alt={images[0].src}
+          width="50%"
           onClick={onZoom}
         />
         <div
@@ -73,16 +73,21 @@ function PostImages({ images }) {
         >
           <PlusOutlined />
           <br />
-          {images.length - 1}개의 사진 더보기
+          {images.length - 1}
+          개의 사진 더보기
         </div>
       </div>
       {showImagesZoom && <ImagesZoom images={images} onClose={onClose} />}
     </>
   );
-}
+};
 
 PostImages.propTypes = {
-  images: PropTypes.arrayOf(PropTypes.object),
+  images: PropTypes.arrayOf(
+    PropTypes.shape({
+      src: PropTypes.string,
+    })
+  ).isRequired,
 };
 
 export default PostImages;
