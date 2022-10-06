@@ -6,19 +6,12 @@ import createSagaMiddleware from "redux-saga";
 import reducer from "../reducers";
 import rootSaga from "../sagas";
 
-const loggerMiddleware =
-  ({ dispatch, getState }) =>
-  (next) =>
-  (action) => {
-    console.log(action);
-    return next(action);
-  };
-
-function configureStore() {
+function configureStore({ context }) {
+  console.log(context);
   const sagaMiddleware = createSagaMiddleware();
   // 미들웨어 작성 ~~ ? 배포용 : 개발용
   //   배포할때 변동사항이 노출되면 안되므로 개발용에만 보이도록!
-  const middlewares = [sagaMiddleware, loggerMiddleware];
+  const middlewares = [sagaMiddleware];
   const enhancer =
     process.env.NODE_ENV === "production"
       ? compose(applyMiddleware(...middlewares))
